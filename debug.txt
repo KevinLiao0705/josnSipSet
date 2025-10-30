@@ -1,0 +1,22 @@
+
+====================================================================================
+TX------>answer
+There are no calls to answer.
+linphonec> 
+====================================================================================
+*301 call 302,301 terminate
+***************************
+TX------>call 302
+Establishing call id to <sip:302@192.168.0.45>, assigned id 2
+Contacting <sip:302@192.168.0.45>
+linphonec> Call 2 to <sip:302@192.168.0.45> in progress.
+linphonec> Call 2 with <sip:302@192.168.0.45> connected.
+Call answered by <sip:302@192.168.0.45>.
+linphonec> Media streams established with <sip:302@192.168.0.45> for call 2 (audio).
+~
+~
+TX------>terminate
+Call ended
+linphonec> Call 2 with <sip:302@192.168.0.45> ended (No error).
+linphonec> 
+====================================================================================

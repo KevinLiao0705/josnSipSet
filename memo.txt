@@ -1,0 +1,6 @@
+linphone command
+=========================
+1 call 301      
+2 terminate
+3 quit :exit linphone; 
+4 exit :exit sipphui program

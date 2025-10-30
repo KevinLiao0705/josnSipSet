@@ -1,0 +1,1 @@
+copy .\dist\base3.jar .\sipphone\sipphone_ui\dist\

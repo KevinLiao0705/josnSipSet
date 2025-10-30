@@ -1,0 +1,41 @@
+﻿#   set raspberry config :
+    ======================
+    sudo raspi-config
+	set time zone
+    set keyboard type
+    set interface 
+        ssh enable
+        serial port (boot login disable) (serial port enable)
+        spi disable 
+        i2c disable
+
+*   install tomcat8 web server :
+    sudo apt-get install tomcat8
+*   install java8 :
+    sudo apt-get install oracle-java8-jdk
+*    install WiringPi :
+    sudo apt-get install wiringpi 	
+
+//======================================    
+* copy "sipui2in1" folder to  "/home/pi/kevin/" 
+//===============
+* cd "/home/pi/kevin/nkv2in1/nkv2in1_io/" 
+*   sudo chmod 777 m.sh
+*   sudo chmod 777 x.sh
+*   sudo ./m.sh
+//===============
+* copy "nkv2in1/interfaces" to /etc/network/
+    edit interfaces and change static ip address
+//===============
+* copy "nkv2in1/*.sh" to  "/home/pi/"
+* cd "/home/pi"
+*   sudo chmod 777 autostart.sh
+*   sudo chmod 777 test.sh
+*   sudo chmod 777 test_ui.sh
+*   sudo chmod 777 test_io.sh
+//===============
+* pi@raspberry:~ $ mkdir .config/autostart 
+* copy autostart.desktop to "/home/pi/.config/autostart/" 
+* edit /etc/rc.local
+* 找到exit 0，在此之前添加的代码在启动时都会被执行，在exit 0 之前添加一行代码：
+  su pi -cs "exec /home/pi/kevin/sipui2in1/sipui2in1_io/x.sh"
