@@ -21,7 +21,16 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.0.28",
+    "softPhoneType": 0,
+    "dsc~softPhoneType": {
+        "title": "軟體電話 類型",
+        "enum": [
+            "twinkle",
+            "linePhone"
+        ],
+        "getType": "buttonRadio"
+    },
+    "systemIpAddress": "192.168.0.86",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
@@ -38,7 +47,7 @@
         "readOnly_f": 1,
         "getType": "strView"
     },
-    "phoneType": 1,
+    "phoneType": 0,
     "dsc~phoneType": {
         "title": "電話 類型",
         "enum": [
@@ -47,12 +56,12 @@
         ],
         "getType": "buttonRadio"
     },
-    "sipName": "Kevin",
+    "sipName": "測試",
     "dsc~sipName": {
         "title": "電話名稱",
         "getType": "str"
     },
-    "sipNumber": "139",
+    "sipNumber": "130",
     "dsc~sipNumber": {
         "title": "電話號碼",
         "getType": "natureStr"
@@ -67,7 +76,7 @@
         "title": "預設閘道器",
         "getType": "ipStr"
     },
-    "sipServerAddress": "192.168.191.2",
+    "sipServerAddress": "192.168.190.2",
     "dsc~sipServerAddress": {
         "title": "SIP 伺服器位址",
         "getType": "ipStr"
@@ -89,7 +98,7 @@
         "unitWidth": 50,
         "getType": "nature"
     },
-    "autoAnswer": 1,
+    "autoAnswer": 0,
     "dsc~autoAnswer": {
         "title": "自動應答",
         "enum": [
@@ -134,7 +143,7 @@
         "title": "廣播擷取語句",
         "getType": "str"
     },
-    "broadcastIp": "192.168.191.2",
+    "broadcastIp": "192.168.190.2",
     "dsc~broadcastIp": {
         "title": "廣播擷取 IP",
         "getType": "ipStr"
@@ -284,7 +293,7 @@
         "titleWidth": 100,
         "getType": "natureStr"
     },
-    "webSocketAddr": "192.168.11.22",
+    "webSocketAddr": "",
     "dsc~webSocketAddr": {
         "title": "webSocketAddr",
         "getType": "ipStr"

@@ -612,6 +612,11 @@ public class Vt100 {
             cmpbuf_len++;
         }
     }
+    void clrCmpbuf() {
+        cmpbuf_len = 0;
+        for(int i=0;i<256;i++)
+            cmpbuf[i]=0;
+    }
 
     void clr_cmp() {
         for (int m = 0; m < (cmplen); m++) {

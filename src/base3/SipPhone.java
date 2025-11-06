@@ -29,6 +29,27 @@ import org.slf4j.LoggerFactory;
 /**
  *
  * @author Administrator
+ * 
+ *      twinkle codec
+ 	switch(codec) {
+	case CODEC_G711_ALAW:
+	case CODEC_G711_ULAW:
+	case CODEC_GSM:
+	case CODEC_SPEEX_NB:
+	case CODEC_ILBC:
+	case CODEC_G729A:
+	case CODEC_G726_16:
+	case CODEC_G726_24:
+	case CODEC_G726_32:
+	case CODEC_G726_40:
+	case CODEC_TELEPHONE_EVENT:
+		return 8000;
+	case CODEC_G722:
+	case CODEC_SPEEX_WB:
+		return 16000;
+	case CODEC_SPEEX_UWB:
+		return 32000;
+* 
  */
 public class SipPhone {
 
@@ -44,6 +65,7 @@ public class SipPhone {
     int nowVrVol_f = 1;
     int nowVrVolTime = 0;
     int printEerorFirst_f = 0;
+    int softPhoneType = 0;
 
     String selfSipDispName = "";
     String selfSipNumber = "";
@@ -51,6 +73,7 @@ public class SipPhone {
     int sipActTime;
     Ssh sshSound = null;
     int pttOnTime = 0;
+    int[] lineCallIds = new int[]{0, 0};
 
     int status_f;
     int cmd_cnt = 0;
@@ -233,6 +256,8 @@ public class SipPhone {
         }
         tpk0 = new TrxPack(3, 0x10);
         preno_inx = 0;
+        
+        
 
     }
 
@@ -242,7 +267,6 @@ public class SipPhone {
         //public int[] lineFlagA = new int[]{0, 0};   //hold,mute,dtmf
         //public int[] lineStaA = new int[]{0, 0};     //0:ready, 1: ring out, 2:ring in, 3:connect, 4:hold 
         //public int[] handStaA = new int[]{0, 0};     //0:ready, 1: earphone, 2:epeaker 
-        
         String ntpServerIp = GB.paraSetMap.get("ntpServerAddress").toString();
         try {
             KvJson kj = new KvJson();
@@ -330,6 +354,7 @@ public class SipPhone {
 
         final SipPhone cla = this;
         GB.loadParaSet();
+        softPhoneType = (int) GB.paraSetMap.get("softPhoneType");
         try {
             Path file = Paths.get(GB.paraSetPath);
             BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
@@ -346,7 +371,11 @@ public class SipPhone {
         vtsip.vtcmp = new Vtcmp() {
             @Override
             public void cmp() {
-                cla.vtcmpTwinkle();
+                if (cla.softPhoneType == 0) {
+                    cla.vtcmpTwinkle();
+                } else {
+                    cla.vtcmpLinPhone();
+                }
             }
         };
         //linphone ssh rx thread
@@ -697,10 +726,41 @@ public class SipPhone {
             bstr = "# RTP AUDIO";
             fw.write(bstr + "\n");
             //=====================
+            /*
+            "g711a"
+            "g711u"
+            "gsm"
+            "speex-nb"
+            "speex-wb"
+            "speex-uwb"
+            "ilbc"
+            "g722"
+            "g726-16"
+            "g726-24"
+            "g726-32"
+            "g726-40"
+            "g729a"
+            */    
             //bstr = "codecs=" + "g711a,g711u,gsm";
-            bstr = "codecs=" + "speex-wb";
+            bstr = "codecs=" + "speex-uwb";
             fw.write(bstr + "\n");
             //=====================
+            fw.write("out_far_end_codec_pref=yes" + "\n");
+            fw.write("speex_nb_payload_type=97" + "\n");
+            fw.write("speex_wb_payload_type=98" + "\n");
+            fw.write("speex_uwb_payload_type=99" + "\n");
+            fw.write("speex_bit_rate_type=cbr" + "\n");
+            fw.write("speex_dtx=no" + "\n");
+            fw.write("speex_penh=yes" + "\n");
+            fw.write("speex_quality=6" + "\n");
+            fw.write("speex_complexity=3" + "\n");
+            fw.write("speex_dsp_vad=no" + "\n");
+            fw.write("speex_dsp_agc=no" + "\n");
+            fw.write("speex_dsp_aec=no" + "\n");
+            fw.write("speex_dsp_nrd=no" + "\n");
+            fw.write("speex_dsp_agc_level=20" + "\n");
+            fw.write("ilbc_payload_type=96" + "\n");
+            //==========================
             bstr = "ptime=" + "20";
             fw.write(bstr + "\n");
             //=====================
@@ -821,6 +881,497 @@ public class SipPhone {
         return 0;
 
     }
+//%1
+
+    void vtcmpLinPhone() {
+        SipPhone cla = this;
+        String str;
+        String[] strA;
+        String tmpStr;
+        String[] tmpStrA;
+        int test = 1;
+
+        int inLine;
+
+        if (cla.vtsip.ncmp("@raspberrypi:~$")) {
+            if (GB.syssec_f == 1) {
+                cla.sipAct("loadSip", null);//<<debug
+            }
+            cla.sipData.ready();
+            cla.sipData.phoneSta = 1;
+            return;
+        }
+        if (cla.sipData.phoneSta == 1) {
+            if (cla.vtsip.ncmp("\nlinphonec>")) {
+                if (GB.lang == 0) {
+                    cla.sipData.status = "In Registing PBX ....";
+                    cla.sipData.action = "Registing PBX";
+                }
+                if (GB.lang == 1) {
+                    cla.sipData.status = "電話註冊中請稍後 ....";
+                    cla.sipData.action = "註冊電話";
+                }
+                cla.sipData.ready();
+                cla.sipData.phoneSta = 2;
+                cla.registSip();
+                return;
+            }
+
+            /*
+            linphonec> register sip:131@
+            tmpStr = cla.vtsip.ncmpStar("%", linphonec> register sip:131@, 80);
+            if (tmpStr != null) {
+                strA = tmpStr.split("%");
+                if (strA.length == 3) {
+                    cla.selfSipDispName = strA[0];
+                    cla.selfSipNumber = strA[1];
+                    return;
+                }
+            }
+             */
+        }
+        if (cla.sipData.phoneSta == 2) {
+            tmpStr = cla.vtsip.ncmpStar("%", "linphonec> register sip:%@", 80);
+            if (tmpStr != null) {
+                strA = tmpStr.split("%");
+                if (strA.length == 1) {
+                    cla.selfSipDispName = strA[0];
+                    cla.selfSipNumber = strA[0];
+
+                    if (GB.lang == 0) {
+                        cla.sipData.status = "Registration Succeeded";
+                        cla.sipData.action = "";
+                    }
+                    if (GB.lang == 1) {
+                        cla.sipData.status = "電話註冊成功";
+                        cla.sipData.action = "";
+                    }
+                    cla.sipData.ready();//phoneSta=3;
+                    cla.sipData.phoneSta = 3;
+                    cla.status_tim = 50;
+                    return;
+                }
+            }
+            return;
+        }
+
+        cla.sipData.lineMessageA[0] = "";
+        cla.sipData.lineMessageA[1] = "";
+        for (;;) {
+            if (cla.sipData.phoneSta >= 3) {
+
+                if (cla.vtsip.ncmpA("Redirection enabled")) {
+                    cla.sipData.reDirection_f = 1;
+                    break;
+                }
+
+                if (cla.vtsip.ncmpA("All redirections disabled")) {
+                    cla.sipData.reDirection_f = 0;
+                    break;
+                }
+
+                if (cla.vtsip.ncmpA("Line 1 is now active.")) {
+                    cla.sipData.nowLine = 0;
+                    cla.sipData.lineMessageA[cla.sipData.nowLine] = "changeLine";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("Line 2 is now active.")) {
+                    cla.sipData.nowLine = 1;
+                    cla.sipData.lineMessageA[cla.sipData.nowLine] = "changeLine";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("Line 1 is already active.")) {
+                    cla.sipData.nowLine = 0;
+                    break;
+                }
+                if (cla.vtsip.ncmpA("Line 2 is already active.")) {
+                    cla.sipData.nowLine = 1;
+                    break;
+                }
+                if (cla.sipActName.equals("mute")) {
+                    if (cla.vtsip.ncmpA("\nmute\n")) {
+                        cla.sipData.lineMessageA[cla.sipData.nowLine] = "mute";
+                        cla.vtsip.clrCmpbuf();
+                        break;
+                    }
+                    if (cla.vtsip.ncmpA("unmute")) {
+                        cla.sipData.lineMessageA[cla.sipData.nowLine] = "unmute";
+                        cla.vtsip.clrCmpbuf();
+                        break;
+                    }
+                }
+                //=================================================
+                if (cla.sipActName.equals("hold")) {
+                    tmpStr = cla.vtsip.ncmpStar("%", "Pausing call % with sip:%@%.", 80);
+                    if (tmpStr != null) {
+                        tmpStrA = tmpStr.split("%");
+                        cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                        inLine = cla.sipData.nowLine;
+                        cla.sipData.lineMessageA[cla.sipData.nowLine] = "hold";
+                        cla.vtsip.clrCmpbuf();
+                        break;
+                    }
+
+                    tmpStr = cla.vtsip.ncmpStar("%", "Resuming call % with sip:%@%.", 80);
+                    if (tmpStr != null) {
+                        tmpStrA = tmpStr.split("%");
+                        cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                        inLine = cla.sipData.nowLine;
+                        cla.sipData.lineMessageA[cla.sipData.nowLine] = "unhold";
+                        cla.vtsip.clrCmpbuf();
+                        break;
+                    }
+
+                }
+
+                /*
+                if (cla.vtsip.ncmpA("hold\n" + "Twinkle> \n" + "Line *: re-INVITE successful.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "hold";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("hold\n" + "Twinkle> ")) {
+                    cla.sipData.lineMessageA[cla.sipData.nowLine] = "hold";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("retrieve\n" + "Twinkle> \n" + "Line *: re-INVITE successful.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "unhold";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("retrieve\n" + "Twinkle> ")) {
+                    cla.sipData.lineMessageA[cla.sipData.nowLine] = "unhold";
+                    break;
+                }
+                 */
+                //============= call out process ================
+                tmpStr = cla.vtsip.ncmpStar("%", "linphonec> Call % to sip:%@% ringing.", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "callOut~" + tmpStrA[1];
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with sip:%@% error.", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "callFailFarEndBusy";
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with sip:%@% ended (Call declined).", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "callFailFarEndNoAnswer";
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with sip:%@% connected.", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "farEndAnswerCall~" + tmpStrA[1];
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with % sip:%@% connected.", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "farEndAnswerCall~" + tmpStrA[2];
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with sip:%@% ended (Unknown error).", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "farEndEndCall";
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with \"%\" <sip:%@%> ended (Unknown error).", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "farEndEndCall";
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "incoming call from \"%\" <sip:%@%>, assigned id %\n", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[3], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "incomeCall~" + tmpStrA[0] + "~" + tmpStrA[1];
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+                tmpStr = cla.vtsip.ncmpStar("%", "Call % with sip:%@% ended (No error).", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    cla.lineCallIds[cla.sipData.nowLine] = Lib.str2int(tmpStrA[0], 0);
+                    inLine = cla.sipData.nowLine;
+                    cla.sipData.lineMessageA[inLine] = "selfEndCall";
+                    cla.vtsip.clrCmpbuf();
+                    break;
+                }
+                
+                if (cla.vtsip.ncmpA("Receiving tone 1 from")) {
+                    int phoneType = (int) GB.paraSetMap.get("phoneType");
+                    if (phoneType == 1) {//roip
+                        cla.pttOnPrg();
+                    }
+                    break;
+                }
+                if (cla.vtsip.ncmpA("Receiving tone 2 from")) {
+                    int phoneType = (int) GB.paraSetMap.get("phoneType");
+                    if (phoneType == 1) {//roip
+                        cla.pttOffPrg();
+                    }
+                    break;
+                }
+                
+                //===============================================================================================
+                if (test == 1) {
+                    break;
+                }
+
+                if (cla.vtsip.ncmpA("Line *: call failed.\n" + "486 Busy Here")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "callFailFarEndBusy";
+                    break;
+                }
+
+                if (cla.vtsip.ncmpA("Line *: call failed.\n" + "404 Not Found")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "callFail";
+                    break;
+                }
+                //if (cla.vtsip.ncmpA("Line *: call ended.\n" + "Twinkle>")) {
+                if (cla.vtsip.ncmpA("Line *: call ended.\n")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "selfEndCall";
+                    break;
+                }
+
+                tmpStr = cla.vtsip.ncmpStar("%", "Line %: far end answered call.\n" + "200 OK\n" + "To: sip:%@", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    inLine = Lib.str2int(tmpStrA[0], 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "farEndAnswerCall~" + tmpStrA[1];
+                    break;
+                }
+                //============= callin process ================
+                tmpStr = cla.vtsip.ncmpStar("%", "Line %: incoming call\nFrom:% <sip:%@%>\nTo:", 80);
+                if (tmpStr != null) {
+                    tmpStrA = tmpStr.split("%");
+                    inLine = Lib.str2int(tmpStrA[0], 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "incomeCall~" + tmpStrA[1] + "~" + tmpStrA[2];
+                }
+                if (cla.vtsip.ncmpA("Line *: far end cancelled call.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "farEndCancelCall";
+                    break;
+                }
+                if (cla.vtsip.ncmpA("Line *: call rejected.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "rejectRingIn";
+                    break;
+                }
+
+                if (cla.vtsip.ncmpA("DTMF detected: 1")) {
+                    int phoneType = (int) GB.paraSetMap.get("phoneType");
+                    if (phoneType == 1) {//roip
+                        cla.pttOnPrg();
+                    }
+                    break;
+                }
+                if (cla.vtsip.ncmpA("DTMF detected: 2")) {
+                    int phoneType = (int) GB.paraSetMap.get("phoneType");
+                    if (phoneType == 1) {//roip
+                        cla.pttOffPrg();
+                    }
+                    break;
+                }
+
+                //same as above
+                /*
+                if (cla.vtsip.ncmpA("bye\n" +"Twinkle>")) {
+                    cla.sipData.lineMessageA[cla.sipData.nowLine] = "selfByeCall";
+                    break;
+                }
+                 */
+                if (cla.vtsip.ncmpA("Line *: call established.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "answerConnectCall";
+                    break;
+                }
+                //============= connect process ================
+                if (cla.vtsip.ncmpA("Line *: far end ended call.")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "farEndEndCall";
+                    break;
+                }
+                //same in ringout
+                /*
+                if (cla.vtsip.ncmpA("Line *: call ended.\n" +"Twinkle>")) {
+                    inLine = Lib.str2int(cla.vtsip.cmpAstr, 1) - 1;
+                    cla.sipData.lineMessageA[inLine] = "selfEndCall";
+                    break;
+                }
+                 */
+            }
+            break;
+        }
+        if (cla.sipData.lineMessageA[0].length() == 0 && cla.sipData.lineMessageA[1].length() == 0) {
+            return;
+        }
+        int actLine;
+        String actStr;
+        if (cla.sipData.lineMessageA[1].length() != 0) {
+            actLine = 1;
+            actStr = cla.sipData.lineMessageA[1];
+        } else {
+            actLine = 0;
+            actStr = cla.sipData.lineMessageA[0];
+        }
+        str = "\n====== Act Line ";
+        str += (actLine + 1) + " : " + actStr;
+        str += " ====== \n";
+        System.out.println(str);
+        strA = actStr.split("~");
+        switch (strA[0]) {
+            case "changeLine":
+                cla.txShellEsc();
+                cla.sipData.lineFlagA[0] &= 0x02;
+                cla.sipData.lineFlagA[1] &= 0x02;
+                break;
+            case "hold":
+                cla.sipData.lineFlagA[actLine] |= 1;
+                break;
+            case "unhold":
+                cla.sipData.lineFlagA[actLine] &= 0xfe;
+                cla.sipActName = "";
+                break;
+            case "mute":
+                cla.sipData.lineFlagA[actLine] |= 2;
+                break;
+            case "unmute":
+                cla.sipData.lineFlagA[actLine] &= 0xfd;
+                cla.sipActName = "";
+                break;
+            //=== call out 
+            case "callOut":
+                cla.sipData.action = "撥打 " + strA[1];
+                cla.sipData.lineStaA[actLine] = 1;
+                cla.sipData.lineNameA[actLine] = strA[1];
+                cla.sipData.lineNoA[actLine] = strA[1];
+                cla.status_tim = 99999;
+                break;
+            case "ringOut":
+                cla.sipData.status = "對方響鈴中....";
+                cla.status_tim = 99999;
+                break;
+            case "callFailNoThisCall":
+                cla.sipData.status = "電話號碼錯誤";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "callFailFarEndNoAnswer":
+                cla.sipData.status = "對方逾時無接聽";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "callFailFarEndBusy":
+                cla.sipData.status = "對方忙線中";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "callFail":
+                cla.sipData.status = "呼叫失敗";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "selfEndCall":
+                cla.sipData.status = "通話已中斷";
+                cla.sipData.action = "取消通話";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "farEndAnswerCall":
+                cla.sipData.status = "對方已接聽";
+                cla.sipData.lineStaA[actLine] = 3;
+                cla.status_tim = 50;
+                Date dNow = new Date();
+                cla.sipData.lineConnectTimeA[actLine] = dNow.getTime();
+                break;
+            //===income call 
+            case "incomeCall":
+                cla.sipData.status = "電話撥入 " + strA[1] + " <" + strA[2] + ">";
+                cla.sipData.action = "請接電話 !";
+                cla.sipData.lineStaA[actLine] = 2;
+                cla.sipData.lineNameA[actLine] = strA[1];
+                cla.sipData.lineNoA[actLine] = strA[2];
+                cla.status_tim = 9999;
+                if (strA[2].contains("*0*")) {
+                    cla.phoneCommandIn("speakerAct");
+                }
+                cla.txShellEsc();
+                break;
+            case "farEndCancelCall":
+                cla.sipData.status = "對方已掛斷";
+                cla.sipData.action = cla.sipData.lineNoA[actLine] + " 取消通話";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "rejectRingIn":
+                cla.sipData.action = "拒絕通話";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "selfByeCall":
+                cla.sipData.action = "取消通話";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 50;
+                break;
+            case "answerConnectCall":
+                cla.sipData.action = "通話已建立";
+                cla.sipData.lineStaA[actLine] = 3;
+                cla.status_tim = 50;
+                dNow = new Date();
+                cla.sipData.lineConnectTimeA[actLine] = dNow.getTime();
+
+                break;
+            //===connected 
+            case "farEndEndCall":
+                cla.sipData.status = "對方已掛斷";
+                cla.sipData.lineStaA[actLine] = 0;
+                cla.status_tim = 100;
+                break;
+            /*        
+            case "selfEndCall":
+                    break;
+             */
+
+        }
+
+    }
 
     void vtcmpTwinkle() {
         SipPhone cla = this;
@@ -879,6 +1430,7 @@ public class SipPhone {
                     cla.sipData.action = "";
                 }
                 cla.sipData.ready();//phoneSta=3;
+                cla.sipData.phoneSta = 3;
                 cla.status_tim = 50;
             }
             return;
@@ -1104,12 +1656,14 @@ public class SipPhone {
                 break;
             case "unhold":
                 cla.sipData.lineFlagA[actLine] &= 0xfe;
+                cla.sipActName = "";
                 break;
             case "mute":
                 cla.sipData.lineFlagA[actLine] |= 2;
                 break;
             case "unmute":
                 cla.sipData.lineFlagA[actLine] &= 0xfd;
+                cla.sipActName = "";
                 break;
             //=== call out 
             case "callOut":
@@ -1211,10 +1765,104 @@ public class SipPhone {
 
     void vtcmpSip() {
     }
+//%2
 
     void clearKeypad() {
         keypad_str = "";
         keypad_on_f = 0;
+
+    }
+
+    void sipLinPhoneAction(String act, String[] paras) {
+        SipPhone cla = this;
+        String str;
+        int nowLine = sipData.nowLine;
+
+        if (act.equals("loadSip")) {
+            cla.sshWriteSip("linphonec\n");
+            sipData.status = "Load SIP Phone";
+            sipData.action = "載入SIP ....";
+            return;
+        }
+
+        if (act.equals("call")) {
+            str = "call " + paras[0] + "\n";
+            sshWriteSip(str);
+            sipData.lineNameA[nowLine] = "";
+            sipData.lineNoA[nowLine] = paras[0];
+            sipData.lineStaA[nowLine] = 1;
+            if (GB.lang == 0) {
+                sipData.status = "Call Out ....";
+                sipData.action = "Call <" + paras[0] + ">";
+            }
+            if (GB.lang == 1) {
+                sipData.status = "撥號中 ....";
+                if (sipData.nowLine == 0) {
+                    sipData.action = "撥打 <" + paras[0] + ">";
+                } else {
+                    sipData.action = "線路2: 連線到 <" + paras[0] + ">";
+                }
+            }
+            status_tim = 100;
+            clearKeypad();
+            return;
+        }
+
+        if (act.equals("hold")) {
+            if (sipData.lineStaA[sipData.nowLine] != 3) {
+                return;
+            }
+            sipActName = "hold";
+            sipActTime = 50;
+            if ((sipData.lineFlagA[cla.sipData.nowLine] & 1) == 0) {
+                sshWriteSip("pause\n");
+            } else {
+                sshWriteSip("resume\n");
+            }
+            return;
+        }
+
+        if (act.equals("mute")) {
+            if (sipData.lineStaA[sipData.nowLine] != 3) {
+                return;
+            }
+            int lineFlag = cla.sipData.lineFlagA[cla.sipData.nowLine];
+            if (((lineFlag >> 1) & 1) == 1) {//mute
+                sipActName = "mute";
+                sipActTime = 50;
+                sshWriteSip("unmute\n");
+                
+            } else {
+                sipActName = "mute";
+                sipActTime = 50;
+                sshWriteSip("mute\n");
+            }
+            return;
+        }
+
+        if (act.equals("line2")) {
+            sshWriteSip("line 2\n");
+            return;
+        }
+        if (act.equals("bye")) {
+            byeDelayTime = 50;
+            sshWriteSip("terminate\n");
+            return;
+        }
+        if (act.equals("line1")) {
+            sshWriteSip("line 1\n");
+            return;
+        }
+        if (act.equals("reject")) {
+            sshWriteSip("terminate\n");
+            return;
+        }
+        if (act.equals("answer")) {
+            sshWriteSip("answer\n");
+        }
+        if (act.equals("transfer")) {
+            sshWriteSip("transfer "+paras[1]+"\n");
+        }
 
     }
 
@@ -1296,12 +1944,23 @@ public class SipPhone {
         }
         if (act.equals("answer")) {
             sshWriteSip("answer\n");
+            return;
         }
+        if (act.equals("transfer")) {
+            sshWriteSip("Redirect -t always "+paras[1]+"\n");
+            return;
+        }
+        
+        
 
     }
 
     void sipAct(String act, String[] paras) {
-        sipTwinckleAction(act, paras);
+        if (this.softPhoneType == 0) {
+            sipTwinckleAction(act, paras);
+        } else {
+            sipLinPhoneAction(act, paras);
+        }
     }
 
     public void sshWriteSip(String shellCommand) {
@@ -1795,6 +2454,8 @@ public class SipPhone {
         dtmfStr = "";
         sipData.lineFlagA[sipData.nowLine] = 0;
         sipData.handStaA[sipData.nowLine] = 0;
+        sipData.lineStaA[sipData.nowLine] = 0;
+        
         txShellEsc();
         if (sipData.phoneSta < 3) {//no register
             return;
@@ -1812,7 +2473,7 @@ public class SipPhone {
         int nowSta = cla.sipData.lineStaA[cla.sipData.nowLine];
         int otherSta = cla.sipData.lineStaA[cla.sipData.nowLine ^ 1];
         int otherLine = cla.sipData.nowLine ^ 1;
-        if (nowSta == 1 || nowSta == 3) {//call out or connect
+        if (nowSta == 1 || nowSta == 3 || nowSta == 0) {//call out or connect
             sipAct("bye", null);
         }
         if (nowSta == 2) {//call in
@@ -2055,8 +2716,8 @@ public class SipPhone {
                     GB.paraSaveMap.put("sipNumber", sipNo);
                     GB.paraSaveMap.put("ntpServerAddress", ntpServerIp);
                     GB.saveParaSet();
-                    System.out.println("saveParaSet "+sysIp);
-                    
+                    System.out.println("saveParaSet " + sysIp);
+
                     break;
 
                 case 0x1A:
@@ -2415,7 +3076,7 @@ public class SipPhone {
                 sipAct("mute", null);
                 break;
             case "transfer":
-                transferCall();
+                sipAct("transfer",strA);
                 break;
             case "f1":
                 break;
@@ -2515,7 +3176,7 @@ public class SipPhone {
         //sshWriteShl(new String(bytes));
         sshWriteShl("kill $PID\n");
         shellCommandStatus = 0;
-        dndOff();
+        //dndOff();
 
     }
 
@@ -2526,7 +3187,6 @@ public class SipPhone {
     }
 
     void dndOff() {
-
         String str;
         str = "dnd -a off\n";
         sshWriteSip(str);
@@ -2792,7 +3452,7 @@ public class SipPhone {
         } else {
             str = "sudo amixer cset numid=4 " + outVolumeTbl[setPhoneVolume] + "," + 0 + "\n";
         }
-        
+
         cla.sshWriteShl(str);
 
     }
@@ -2952,12 +3612,30 @@ public class SipPhone {
         }
         if (cla.sipData.phoneSta >= 2) {
             System.out.println("reRegist pbx");
-            cla.sshWriteSip("register -a\n");
+            registSip();
         }
         cla.auto_register_tim = 0;
-
     }
 
+    void registSip() {
+        SipPhone cla = this;
+        String str;
+        if (cla.softPhoneType == 0) {
+            cla.sshWriteSip("register -a\n");
+        } else {
+            String sipName = GB.paraSetMap.get("sipName").toString();
+            String sipNo = GB.paraSetMap.get("sipNumber").toString();
+            String sipServerIp = GB.paraSetMap.get("sipServerAddress").toString();
+            String sipServerPin = GB.paraSetMap.get("sipServerPassword").toString();
+
+            str = "register sip:" + sipNo + "@";
+            str += sipServerIp;
+            str += " sip:" + sipServerIp + ' ' + sipServerPin + '\n';
+            cla.sshWriteSip(str);
+
+        }
+
+    }
 }
 
 class SiprxTd extends Thread {
@@ -3349,7 +4027,7 @@ class SipPhoneTm1 extends TimerTask {
                 GB.webSocketAddr = GB.realIpAddress;
                 KvWebSocketServer.serverStart();
             }
-            if(++cla.pttOnTime>50*60){
+            if (++cla.pttOnTime > 50 * 60) {
                 cla.piIoOut &= 0xfffe;
             }
 
@@ -3424,19 +4102,20 @@ class SipPhoneTm1 extends TimerTask {
                                 break;
                         }
                     }
-                    
+
                     String systemIp = GB.paraSetMap.get("systemIpAddress").toString();
-                    System.out.println("write sysIp="+systemIp);
-                    if(!systemIp.equals(GB.realIpAddress))
+                    System.out.println("write sysIp=" + systemIp);
+                    if (!systemIp.equals(GB.realIpAddress)) {
                         setNet = 1;
-                    
+                    }
+
                     if (setNet == 1) {
                         System.out.println("setNet=1");
                         String sysIp = GB.paraSetMap.get("systemIpAddress").toString();
                         String sysMask = GB.paraSetMap.get("systemNetMask").toString();
                         String sysGateWay = GB.paraSetMap.get("systemGateWay").toString();
                         Lib.wrInterfaces(sysIp, sysMask, sysGateWay);
-                        System.out.println("write sysIp="+sysIp);
+                        System.out.println("write sysIp=" + sysIp);
                         cla.sshWriteShl("sudo reboot \n");//<<debug
                         //cla.resetNetwork();
 
@@ -3620,7 +4299,7 @@ class SipPhoneTm1 extends TimerTask {
                     Date dNow = new Date();
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy.MM.dd  HH:mm:ss");
                     cla.sipData.status = ft.format(dNow);
-                    cla.sipData.action = cla.selfSipDispName + "<" + cla.selfSipNumber + "> Ready";
+                    cla.sipData.action = cla.sipData.sipName + "<" + cla.sipData.sipNo + "> Ready";
                 } else {
                     Date dNow = new Date();
                     Date passT = new Date(dNow.getTime() - cla.sipData.lineConnectTimeA[cla.sipData.nowLine] - 3600000 * 8);
@@ -3718,7 +4397,6 @@ class SipData {
     public String sipServerIp = "";
 
     void ready() {
-        phoneSta = 3;  //0:none 1:pi ready, 2:twinkle loaded, 3:pbx registed,
         nowLine = 0;
         lineFlagA[0] = 0;
         lineFlagA[1] = 0;

@@ -56,7 +56,7 @@ public class GB {
     //================================================
     //sipmd ui use
     //================================================
-    static String twinkleDeviceIp = "192.168.0.204";//just win use     
+    static String twinkleDeviceIp = "192.168.0.85";//just win use     
     static String twinkleDeviceName = "pi";
     static String twinkleDevicePassword = "123456789";
     static int sipToUiSocketPort = 1336;
@@ -88,8 +88,8 @@ public class GB {
     static int action_step = 0;
     static int action_tim = 0;
     //web use=========================================
-    public static int ear_mic_sens = 4;
-    public static int phset_mic_sens = 4;
+    public static int ear_mic_sens = 9;
+    public static int phset_mic_sens = 9;
     //==================================================================
 
     //public static int carTypeName_len=0;
