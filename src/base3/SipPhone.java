@@ -5,6 +5,8 @@
  */
 package base3;
 
+
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -20,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.json.JSONArray;
@@ -29,27 +32,13 @@ import org.slf4j.LoggerFactory;
 /**
  *
  * @author Administrator
- * 
- *      twinkle codec
- 	switch(codec) {
-	case CODEC_G711_ALAW:
-	case CODEC_G711_ULAW:
-	case CODEC_GSM:
-	case CODEC_SPEEX_NB:
-	case CODEC_ILBC:
-	case CODEC_G729A:
-	case CODEC_G726_16:
-	case CODEC_G726_24:
-	case CODEC_G726_32:
-	case CODEC_G726_40:
-	case CODEC_TELEPHONE_EVENT:
-		return 8000;
-	case CODEC_G722:
-	case CODEC_SPEEX_WB:
-		return 16000;
-	case CODEC_SPEEX_UWB:
-		return 32000;
-* 
+ *
+ * twinkle codec switch(codec) { case CODEC_G711_ALAW: case CODEC_G711_ULAW:
+ * case CODEC_GSM: case CODEC_SPEEX_NB: case CODEC_ILBC: case CODEC_G729A: case
+ * CODEC_G726_16: case CODEC_G726_24: case CODEC_G726_32: case CODEC_G726_40:
+ * case CODEC_TELEPHONE_EVENT: return 8000; case CODEC_G722: case
+ * CODEC_SPEEX_WB: return 16000; case CODEC_SPEEX_UWB: return 32000;
+ *
  */
 public class SipPhone {
 
@@ -256,8 +245,6 @@ public class SipPhone {
         }
         tpk0 = new TrxPack(3, 0x10);
         preno_inx = 0;
-        
-        
 
     }
 
@@ -268,6 +255,7 @@ public class SipPhone {
         //public int[] lineStaA = new int[]{0, 0};     //0:ready, 1: ring out, 2:ring in, 3:connect, 4:hold 
         //public int[] handStaA = new int[]{0, 0};     //0:ready, 1: earphone, 2:epeaker 
         String ntpServerIp = GB.paraSetMap.get("ntpServerAddress").toString();
+        String setVersion = GB.paraSetMap.get("version").toString();
         try {
             KvJson kj = new KvJson();
             kj.jStart();
@@ -278,6 +266,7 @@ public class SipPhone {
             kj.jadd("sipServerIp", sipData.sipServerIp);
             kj.jadd("ntpServerIp", ntpServerIp);
             kj.jadd("phoneSta", sipData.phoneSta);
+            kj.jadd("version", GB.version+"-"+setVersion);
             //================
             int ibuf = 0;
             ibuf += sipData.reDirection_f;
@@ -363,6 +352,15 @@ public class SipPhone {
 
         }
 
+        Date dNow = new Date();
+        SimpleDateFormat ft = new SimpleDateFormat("yyyy.MM.dd  HH:mm:ss");
+        //ft.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timeStr = ft.format(dNow);
+        System.out.println("UTC" + timeStr);
+        
+        
+        
+        
         cla.sipData.status = "JSSIP電話 , 版本: 3.0";
         cla.sipData.action = "啟動中 ....";
         //=================================================
@@ -740,7 +738,7 @@ public class SipPhone {
             "g726-32"
             "g726-40"
             "g729a"
-            */    
+             */
             //bstr = "codecs=" + "g711a,g711u,gsm";
             bstr = "codecs=" + "speex-uwb";
             fw.write(bstr + "\n");
@@ -1131,7 +1129,7 @@ public class SipPhone {
                     cla.vtsip.clrCmpbuf();
                     break;
                 }
-                
+
                 if (cla.vtsip.ncmpA("Receiving tone 1 from")) {
                     int phoneType = (int) GB.paraSetMap.get("phoneType");
                     if (phoneType == 1) {//roip
@@ -1146,7 +1144,7 @@ public class SipPhone {
                     }
                     break;
                 }
-                
+
                 //===============================================================================================
                 if (test == 1) {
                     break;
@@ -1831,7 +1829,7 @@ public class SipPhone {
                 sipActName = "mute";
                 sipActTime = 50;
                 sshWriteSip("unmute\n");
-                
+
             } else {
                 sipActName = "mute";
                 sipActTime = 50;
@@ -1861,7 +1859,7 @@ public class SipPhone {
             sshWriteSip("answer\n");
         }
         if (act.equals("transfer")) {
-            sshWriteSip("transfer "+paras[1]+"\n");
+            transferPrg(paras[1]);
         }
 
     }
@@ -1946,12 +1944,20 @@ public class SipPhone {
             sshWriteSip("answer\n");
             return;
         }
-        if (act.equals("transfer")) {
-            sshWriteSip("Redirect -t always "+paras[1]+"\n");
+        if (act.equals("reDirect")) {
+            if(paras[1].equals("reset")){
+                sshWriteSip("Redirect -a off\n");
+            }
+            else{
+                sshWriteSip("Redirect -t always " + paras[1] + "\n");
+                cla.sipData.reDirectNumber=paras[1];
+            }
             return;
         }
-        
-        
+        if (act.equals("transferNumber")) {
+            transferPrg(paras[1]);
+            return;
+        }
 
     }
 
@@ -2332,7 +2338,7 @@ public class SipPhone {
                 break;
             case 3:
                 txSipInf_step_wait_f = 0;
-                String version = GB.paraSetMap.get("version").toString();
+                String version = GB.version+"-"+GB.paraSetMap.get("version").toString();
                 chA = version.toCharArray();
                 txBytes[pos++] = 0x40;       //
                 txBytes[pos++] = (byte) chA.length;
@@ -2455,7 +2461,7 @@ public class SipPhone {
         sipData.lineFlagA[sipData.nowLine] = 0;
         sipData.handStaA[sipData.nowLine] = 0;
         sipData.lineStaA[sipData.nowLine] = 0;
-        
+
         txShellEsc();
         if (sipData.phoneSta < 3) {//no register
             return;
@@ -3076,7 +3082,13 @@ public class SipPhone {
                 sipAct("mute", null);
                 break;
             case "transfer":
-                sipAct("transfer",strA);
+                transferCall();
+                break;
+            case "transferNumber":
+                sipAct("transferNumber", strA);
+                break;
+            case "reDirect":
+                sipAct("reDirect", strA);
                 break;
             case "f1":
                 break;
@@ -3215,6 +3227,33 @@ public class SipPhone {
         sipAct("call", new String[]{noStr});
     }
 
+    void transferPrg(String number) {
+        String str;
+        str = "transfer " + number + "\n";
+        sshWriteSip(str);
+        String keypadStr = keypad_str;
+        hangOnPrg();
+        setId = "transferDone";
+        setting_str = keypadStr + " 轉接中";
+        setting_on_f = 1;
+        setting_tim = 150;
+        keypad_str = number;
+
+    }
+
+    void transferCall() {
+        int nowSta = sipData.lineStaA[sipData.nowLine];
+        if (nowSta != 3) {
+            return;
+        }
+        setting_on_f = 1;
+        setting_tim = 0;
+        keypad_str = "";
+        setting_str = "轉接到 ";
+        setId = "transfer";
+    }
+    
+    
     void phoneKeyin(String cmd) {
         String str;
         byte[] bytes;
@@ -3229,15 +3268,7 @@ public class SipPhone {
                         if (keypad_str.equals("")) {
                             return;
                         }
-                        str = "transfer " + keypad_str + "\n";
-                        sshWriteSip(str);
-                        String keypadStr = keypad_str;
-                        hangOnPrg();
-                        setId = "transferDone";
-                        setting_str = keypadStr + " 轉接中";
-                        setting_on_f = 1;
-                        setting_tim = 150;
-
+                        transferPrg(keypad_str);
                         return;
                     }
                     keypad_str += cmd;
@@ -3335,17 +3366,6 @@ public class SipPhone {
 
     }
 
-    void transferCall() {
-        int nowSta = sipData.lineStaA[sipData.nowLine];
-        if (nowSta != 3) {
-            return;
-        }
-        setting_on_f = 1;
-        setting_tim = 0;
-        keypad_str = "";
-        setting_str = "轉接到 ";
-        setId = "transfer";
-    }
 
     void vrVolume() {
         if (nowVrVol_f == 0) {
@@ -4074,6 +4094,8 @@ class SipPhoneTm1 extends TimerTask {
                     GB.preParaSetTime = nowParaSetTime;
                     int setNet = 0;
                     int setTwinkle = 0;
+                    int setNtp = 0;
+                    
                     for (int i = 0; i < chgA.size(); i++) {
                         String chgKey = chgA.get(i);
                         switch (chgKey) {
@@ -4100,6 +4122,14 @@ class SipPhoneTm1 extends TimerTask {
                             case "sipServerPassword":
                                 setTwinkle = 1;
                                 break;
+                            case "ntpServerAddress":
+                                setNtp = 1;
+                                break;
+                            case "setAllCnt":
+                                setNtp = 1;
+                                setNet = 1;
+                                break;
+                                
                         }
                     }
 
@@ -4108,7 +4138,11 @@ class SipPhoneTm1 extends TimerTask {
                     if (!systemIp.equals(GB.realIpAddress)) {
                         setNet = 1;
                     }
-
+                    if (setNtp == 1) {
+                        String ntpIp = GB.paraSetMap.get("ntpServerAddress").toString();
+                        Lib.wrNtp(ntpIp);
+                        
+                    }    
                     if (setNet == 1) {
                         System.out.println("setNet=1");
                         String sysIp = GB.paraSetMap.get("systemIpAddress").toString();
@@ -4117,7 +4151,6 @@ class SipPhoneTm1 extends TimerTask {
                         Lib.wrInterfaces(sysIp, sysMask, sysGateWay);
                         System.out.println("write sysIp=" + sysIp);
                         cla.sshWriteShl("sudo reboot \n");//<<debug
-                        //cla.resetNetwork();
 
                     }
                     if (setTwinkle == 1) {
@@ -4298,7 +4331,11 @@ class SipPhoneTm1 extends TimerTask {
                 if (lineSta < 3) {
                     Date dNow = new Date();
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy.MM.dd  HH:mm:ss");
+                    //ft.setTimeZone(TimeZone.getTimeZone("UTC"));
                     cla.sipData.status = ft.format(dNow);
+                    if(cla.sipData.reDirection_f==1){
+                        cla.sipData.status="電話已轉接至 "+cla.sipData.reDirectNumber;
+                    }
                     cla.sipData.action = cla.sipData.sipName + "<" + cla.sipData.sipNo + "> Ready";
                 } else {
                     Date dNow = new Date();
@@ -4381,6 +4418,7 @@ class SipData {
     public String sipNo = "";
     public int nowLine = 0;
     public int reDirection_f = 0;
+    public String reDirectNumber="";
     public int phoneSta = 0;  //0 no raspberryPi,1:raspberry pi ready,2:linphonec load,3:pbx registed
     public String status = "";
     public String action = "";

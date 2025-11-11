@@ -6,7 +6,7 @@
         "readOnly_f": 1,
         "getType": "strView"
     },
-    "version": "2.0",
+    "version": "3.0",
     "dsc~version": {
         "title": "版本",
         "readOnly_f": 1,
@@ -30,7 +30,7 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.0.86",
+    "systemIpAddress": "192.168.222.122",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
@@ -61,7 +61,7 @@
         "title": "電話名稱",
         "getType": "str"
     },
-    "sipNumber": "130",
+    "sipNumber": "131",
     "dsc~sipNumber": {
         "title": "電話號碼",
         "getType": "natureStr"
@@ -81,7 +81,7 @@
         "title": "SIP 伺服器位址",
         "getType": "ipStr"
     },
-    "ntpServerAddress": "0.0.0.0",
+    "ntpServerAddress": "192.168.190.9",
     "dsc~ntpServerAddress": {
         "title": "NTP 伺服器位址",
         "getType": "ipStr"
@@ -297,6 +297,11 @@
     "dsc~webSocketAddr": {
         "title": "webSocketAddr",
         "getType": "ipStr"
+    },
+    "setAllCnt": 1,
+    "dsc~setAllCnt": {
+        "title": "系統重設ID",
+        "getType": "nature"
     },
     "dsc~end": 0
 }

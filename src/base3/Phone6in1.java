@@ -360,6 +360,8 @@ public class Phone6in1 extends javax.swing.JDialog {
             kj.jadd("sipNo", realSipPhoneNo);
             kj.jadd("sipPhoneIp", realSipPhoneIp);
             kj.jadd("sipServerIp", realSipServerIp);
+            String setVersion = GB.paraSetMap.get("version").toString();
+            kj.jadd("version", GB.version+"-"+setVersion);
 
             String switchIp = GB.paraSetMap.get("switchIpAddress").toString();
             String ntpIp = GB.paraSetMap.get("ntpServerAddress").toString();
@@ -1297,6 +1299,14 @@ public class Phone6in1 extends javax.swing.JDialog {
 
                 if (cla.reboot_f == 1) {
                     return;
+                }
+                if (str.contains("Would you like to enter the initial configuration dialog? [yes/no]:")) {
+                    txpackStr(trxPack0, 3, "yes\r\n");
+                    switchCommand = "";
+                    s0p3_txnone_tim = 0;
+                    return;
+                    
+                    
                 }
                 if (str.contains("Switch>")) {
                     if (cla.change_switch_ip_str.equals("")) {
@@ -2752,6 +2762,15 @@ public class Phone6in1 extends javax.swing.JDialog {
 
                     }
                     if (num == 2) {
+                        if (cla.reDirection_f != 0) {
+                            phoneKey("reDirect "+"reset");
+                            pnView_on_f = 0;
+                            pnView.setVisible(false);
+                            pnLeft.setVisible(true);
+                            return;
+                        }
+                            
+                        
                         inp1 = new Input(null, true);
                         inp1.create();
                         inp1.title_str = "請輸入轉接號碼";
@@ -2764,9 +2783,11 @@ public class Phone6in1 extends javax.swing.JDialog {
                             return;
                         }
                         if (Input.ret_str.length() != 0) {
-                            sipCommand = "Redirect -t always " + Input.ret_str + "\n";
+                            phoneKey("reDirect "+Input.ret_str);
+                            //sipCommand = "Redirect -t always " + Input.ret_str + "\n";
                         } else {
-                            sipCommand = "Redirect -a off\n";
+                            //sipCommand = "Redirect -a off\n";
+                            phoneKey("reDirect "+"reset");
 
                         }
 
@@ -3642,7 +3663,7 @@ class Phone6in1Tm1 implements ActionListener {
                             case "switchGateWay":
                                 setSwitch = 1;
                                 break;
-                            case "reSetAllCnt":
+                            case "setAllCnt":
                             case "ipMode":
                                 setSwitch = 1;
                                 setNet = 1;

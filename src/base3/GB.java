@@ -24,7 +24,9 @@ import java.util.Set;
 public class GB {
 
     //0: win.ui, 1: win.sip, 2: pi.ui, 3: pi.sip  
-    static int prgMode = 3;
+    static int prgMode = 2;
+    static String twinkleDeviceIp = "192.168.222.122";//just win use     
+    static String version="s3.0";
 
     
     
@@ -56,7 +58,6 @@ public class GB {
     //================================================
     //sipmd ui use
     //================================================
-    static String twinkleDeviceIp = "192.168.0.85";//just win use     
     static String twinkleDeviceName = "pi";
     static String twinkleDevicePassword = "123456789";
     static int sipToUiSocketPort = 1336;
@@ -69,6 +70,7 @@ public class GB {
     static String setdata_xml = "./setdata.xml";
     static String setdata_db = "./setdata.db";
     static String interfaces_path = "./interfaces";
+    static String ntpConfPathName = "./timesyncd.conf";
     static String twinkleCfg_path = "./twinkle.cfg";
     static String ntp_path = "./timesyncd.conf";
     //==============================================================================
@@ -88,8 +90,8 @@ public class GB {
     static int action_step = 0;
     static int action_tim = 0;
     //web use=========================================
-    public static int ear_mic_sens = 9;
-    public static int phset_mic_sens = 9;
+    public static int ear_mic_sens = 6;
+    public static int phset_mic_sens = 6;
     //==================================================================
 
     //public static int carTypeName_len=0;
@@ -218,8 +220,8 @@ public class GB {
             GB.setdata_xml = "./setdata.xml";
             GB.setdata_db = "./setdata.db";
             GB.interfaces_path = "./interfaces";
+            GB.ntpConfPathName = "./timesyncd.conf";
             GB.twinkleCfg_path = "./twinkle.cfg";
-            GB.ntp_path = "./timesyncd.conf";
             GB.paraSetPath = "./paraSetUi.json";
         }
         if (GB.prgMode == 1) {
@@ -228,8 +230,8 @@ public class GB {
             GB.setdata_xml = "./setdata.xml";
             GB.setdata_db = "./setdata.db";
             GB.interfaces_path = "./interfaces";
+            GB.ntpConfPathName = "./timesyncd.conf";
             GB.twinkleCfg_path = "./twinkle.cfg";
-            GB.ntp_path = "./timesyncd.conf";
             GB.asound_path = "./asound.conf";
             GB.twinkleSys_path = "./twinkle.sys";
             GB.paraSetPath = "./paraSetSip.json";
@@ -241,8 +243,8 @@ public class GB {
             GB.setdata_xml = "./setdata.xml";
             GB.setdata_db = "./setdata.db";
             GB.interfaces_path = "/etc/network/interfaces";
+            GB.ntpConfPathName = "/etc/systemd/timesyncd.conf";
             GB.twinkleCfg_path = "./twinkle.cfg";
-            GB.ntp_path = "/etc/systemd/timesyncd.conf";
             GB.twinkleDeviceIp = "127.0.0.1";
             GB.paraSetPath = "/home/pi/kevin/sipui2in1/paraSetUi.json";
         }
@@ -252,8 +254,8 @@ public class GB {
             GB.setdata_xml = "/var/lib/tomcat9/webapps/ROOT/setdata.xml";
             GB.setdata_db = "/var/lib/tomcat9/webapps/ROOT/setdata.db";
             GB.interfaces_path = "/etc/network/interfaces";
+            GB.ntpConfPathName = "/etc/systemd/timesyncd.conf";
             GB.twinkleCfg_path = "/home/pi/.twinkle/twinkle.cfg";
-            GB.ntp_path = "/etc/systemd/timesyncd.conf";
             GB.asound_path = "/etc/asound.conf";
             GB.twinkleSys_path = "/home/pi/.twinkle/twinkle.sys";
             GB.twinkleDeviceIp = "127.0.0.1";

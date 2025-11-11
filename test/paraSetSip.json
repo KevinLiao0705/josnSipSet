@@ -6,7 +6,7 @@
         "readOnly_f": 1,
         "getType": "strView"
     },
-    "version": "2.0",
+    "version": "p3.0",
     "dsc~version": {
         "title": "版本",
         "readOnly_f": 1,
@@ -21,7 +21,16 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.166.141",
+    "softPhoneType": 0,
+    "dsc~softPhoneType": {
+        "title": "軟體電話 類型",
+        "enum": [
+            "twinkle",
+            "linePhone"
+        ],
+        "getType": "buttonRadio"
+    },
+    "systemIpAddress": "192.168.111.223",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
@@ -47,24 +56,12 @@
         ],
         "getType": "buttonRadio"
     },
-
-    "softPhoneType": 0,
-    "dsc~softPhoneType": {
-        "title": "軟體電話 類型",
-        "enum": [
-            "twinkle",
-            "linePhone"
-        ],
-        "getType": "buttonRadio"
-    },
-
-
-    "sipName": "中文",
+    "sipName": "測試",
     "dsc~sipName": {
         "title": "電話名稱",
         "getType": "str"
     },
-    "sipNumber": "152",
+    "sipNumber": "130",
     "dsc~sipNumber": {
         "title": "電話號碼",
         "getType": "natureStr"
@@ -84,7 +81,7 @@
         "title": "SIP 伺服器位址",
         "getType": "ipStr"
     },
-    "ntpServerAddress": "220.130.158.52",
+    "ntpServerAddress": "192.168.190.9",
     "dsc~ntpServerAddress": {
         "title": "NTP 伺服器位址",
         "getType": "ipStr"
@@ -146,7 +143,7 @@
         "title": "廣播擷取語句",
         "getType": "str"
     },
-    "broadcastIp": "192.168.191.2",
+    "broadcastIp": "192.168.190.2",
     "dsc~broadcastIp": {
         "title": "廣播擷取 IP",
         "getType": "ipStr"
@@ -183,7 +180,7 @@
         "title": "管理者密碼",
         "getType": "str"
     },
-    "ntpAdjTime": 600,
+    "ntpAdjTime": 611,
     "dsc~ntpAdjTime": {
         "title": "NTP 校正間隔",
         "unit": "Sec",
@@ -301,5 +298,12 @@
         "title": "webSocketAddr",
         "getType": "ipStr"
     },
+
+    "setAllCnt": 0,
+    "dsc~setAllCnt": {
+        "title": "系統重設ID",
+        "getType": "nature"
+    },
+
     "dsc~end": 0
 }

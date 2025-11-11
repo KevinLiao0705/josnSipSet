@@ -336,6 +336,28 @@ public class Lib {
     }
 
 
+    static int wrNtp(String ip) {
+        String fname;
+        String bstr;
+        fname = GB.ntpConfPathName;
+        System.out.println("ntpIp "+ip+ " ==>"+fname);
+
+        try {
+            FileWriter fw = new FileWriter(fname);
+            fw.write("[Time]\n");
+            fw.write("NTP="+ip+"\n");
+            fw.flush();
+            fw.close();
+            return 1;
+        } catch (FileNotFoundException e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+        }
+        return 0;
+    }
+    
+    
     static int writeFileLines(String fileName, ArrayList<String> lines) {
         String bstr;
         try {
