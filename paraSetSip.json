@@ -30,7 +30,7 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.222.122",
+    "systemIpAddress": "192.168.2.4",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
@@ -61,7 +61,7 @@
         "title": "電話名稱",
         "getType": "str"
     },
-    "sipNumber": "131",
+    "sipNumber": "141",
     "dsc~sipNumber": {
         "title": "電話號碼",
         "getType": "natureStr"
@@ -76,12 +76,12 @@
         "title": "預設閘道器",
         "getType": "ipStr"
     },
-    "sipServerAddress": "192.168.190.2",
+    "sipServerAddress": "192.168.191.2",
     "dsc~sipServerAddress": {
         "title": "SIP 伺服器位址",
         "getType": "ipStr"
     },
-    "ntpServerAddress": "192.168.190.9",
+    "ntpServerAddress": "192.168.191.9",
     "dsc~ntpServerAddress": {
         "title": "NTP 伺服器位址",
         "getType": "ipStr"

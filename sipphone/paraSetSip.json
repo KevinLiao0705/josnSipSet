@@ -6,7 +6,7 @@
         "readOnly_f": 1,
         "getType": "strView"
     },
-    "version": "2.0",
+    "version": "3.0",
     "dsc~version": {
         "title": "版本",
         "readOnly_f": 1,
@@ -30,7 +30,7 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.0.28",
+    "systemIpAddress": "192.168.192.203",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
@@ -56,12 +56,12 @@
         ],
         "getType": "buttonRadio"
     },
-    "sipName": "Kevin",
+    "sipName": "測試",
     "dsc~sipName": {
         "title": "電話名稱",
         "getType": "str"
     },
-    "sipNumber": "131",
+    "sipNumber": "141",
     "dsc~sipNumber": {
         "title": "電話號碼",
         "getType": "natureStr"
@@ -76,12 +76,12 @@
         "title": "預設閘道器",
         "getType": "ipStr"
     },
-    "sipServerAddress": "192.168.190.2",
+    "sipServerAddress": "192.168.191.2",
     "dsc~sipServerAddress": {
         "title": "SIP 伺服器位址",
         "getType": "ipStr"
     },
-    "ntpServerAddress": "0.0.0.0",
+    "ntpServerAddress": "192.168.191.9",
     "dsc~ntpServerAddress": {
         "title": "NTP 伺服器位址",
         "getType": "ipStr"
@@ -143,7 +143,7 @@
         "title": "廣播擷取語句",
         "getType": "str"
     },
-    "broadcastIp": "192.168.191.2",
+    "broadcastIp": "192.168.190.2",
     "dsc~broadcastIp": {
         "title": "廣播擷取 IP",
         "getType": "ipStr"
@@ -293,10 +293,15 @@
         "titleWidth": 100,
         "getType": "natureStr"
     },
-    "webSocketAddr": "192.168.0.28",
+    "webSocketAddr": "",
     "dsc~webSocketAddr": {
         "title": "webSocketAddr",
         "getType": "ipStr"
+    },
+    "setAllCnt": 1,
+    "dsc~setAllCnt": {
+        "title": "系統重設ID",
+        "getType": "nature"
     },
     "dsc~end": 0
 }
