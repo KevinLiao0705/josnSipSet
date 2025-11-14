@@ -24,7 +24,7 @@ import java.util.Set;
 public class GB {
 
     //0: win.ui, 1: win.sip, 2: pi.ui, 3: pi.sip  
-    static int prgMode = 2;
+    static int prgMode = 0;
     static String twinkleDeviceIp = "192.168.222.122";//just win use     
     static String version="s3.0";
 

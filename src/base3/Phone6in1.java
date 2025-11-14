@@ -2858,9 +2858,9 @@ public class Phone6in1 extends javax.swing.JDialog {
                     }
                     if (num == 7) {
                         GB.paraSaveMap.clear();
-                        int reSetAllCnt = (int) GB.paraSetMap.get("reSetAllCnt");
-                        reSetAllCnt++;
-                        GB.paraSaveMap.put("reSetAllCnt", reSetAllCnt);
+                        int setAllCnt = (int) GB.paraSetMap.get("setAllCnt");
+                        setAllCnt++;
+                        GB.paraSaveMap.put("setAllCnt", setAllCnt);
                         GB.saveParaSet();
                         cla.pnView_on_f = 0;
                         cla.viewPageInx = 0;
