@@ -33,7 +33,7 @@ extern "C"
 #define sipphoneIo
 //#define sipui2in1Io
 //=============================
-#define roip
+//#define roip
 //=============================
 
 

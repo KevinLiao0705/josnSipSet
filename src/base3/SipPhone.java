@@ -3394,8 +3394,9 @@ public class SipPhone {
         }
 
         setting_str = "Speaker Volume= " + setPhoneVolume;
+        GB.paraSetMap.put("setPhoneVolume",setPhoneVolume);
         setSpeakerVolume();
-        Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
+        //Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
         setting_on_f = 1;
         setId = "setVolume";
         setting_tim = 0;
@@ -3415,14 +3416,14 @@ public class SipPhone {
             }
             setting_str = "Ear Phone Volume= " + earPhoneVolume;
             setEarphoneVolume();
-            Base3.scla.editNewDb("ear_speaker_vol", "" + earPhoneVolume);
+            //Base3.scla.editNewDb("ear_speaker_vol", "" + earPhoneVolume);
         } else {
             if (setting_on_f == 1 && setPhoneVolume < 9) {
                 setPhoneVolume++;
             }
             setting_str = "Speaker Volume= " + setPhoneVolume;
             setSpeakerVolume();
-            Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
+            //Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
         }
         GB.paraSetMap.put("earPhoneVolume", earPhoneVolume);
         GB.paraSetMap.put("setPhoneVolume", setPhoneVolume);
@@ -3441,14 +3442,14 @@ public class SipPhone {
             }
             setting_str = "Ear Phone Volume= " + earPhoneVolume;
             setEarphoneVolume();
-            Base3.scla.editNewDb("ear_speaker_vol", "" + earPhoneVolume);
+            //Base3.scla.editNewDb("ear_speaker_vol", "" + earPhoneVolume);
         } else {
             if (setting_on_f == 1 && setPhoneVolume > 0) {
                 setPhoneVolume--;
             }
             setting_str = "Speaker Volume= " + setPhoneVolume;
             setSpeakerVolume();
-            Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
+            //Base3.scla.editNewDb("phset_speaker_vol", "" + setPhoneVolume);
         }
         GB.paraSetMap.put("earPhoneVolume", earPhoneVolume);
         GB.paraSetMap.put("setPhoneVolume", setPhoneVolume);
