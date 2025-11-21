@@ -49,7 +49,7 @@ public class SipPhone {
     String status;
 
     int nowVr;
-    int preVr = 0xffff;
+    int preVrVol = 0xffff;
     int nowVrVol = 0;
     int nowVrVol_f = 1;
     int nowVrVolTime = 0;
@@ -3564,30 +3564,38 @@ public class SipPhone {
                         piMcuVrAdi = 0x3ff;
                     }
                     nowVr = 0x3ff - piMcuVrAdi;
-                    if (preVr == 0xffff) {
-                        preVr = nowVr;
-                    }
-                    //=========================
-                    int delta = nowVr - preVr;
-                    if (delta < 0) {
-                        delta = 0 - delta;
-                    }
-                    if (delta < 4) {
-                        continue;
-                    }
-                    preVr = nowVr;
-                    //=========================
                     int vol = 0;
                     for (int i = 1; i <= 9; i++) {
-                        if (nowVr < (i * 102)) {
+                        if (nowVr < (i * 102-10)) {
                             break;
                         }
                         vol++;
                     }
+                    int aVol=vol;
+                    vol = 0;
+                    for (int i = 1; i <= 9; i++) {
+                        if (nowVr < (i * 102+10)) {
+                            break;
+                        }
+                        vol++;
+                    }
+                    int bVol=vol;
+                    if(nowVrVol!=aVol && nowVrVol!=bVol)
+                        nowVrVol=aVol;
+                    if(aVol==bVol){
+                        nowVrVol=aVol;
+                    }
+                    if (preVrVol == 0xffff) {
+                        preVrVol=nowVrVol;
+                        continue;
+                    }
+                    if(nowVrVol==preVrVol)
+                        continue;
+                    System.out.println("nowVrVol "+nowVrVol);
+                    preVrVol=nowVrVol;
                     nowVrVolTime = 0;
-                    nowVrVol = vol;
                     nowVrVol_f = 1;
-
+                    
                 }
                 //loadTxPiUart1(cla.tpk0, 2);
                 continue;
