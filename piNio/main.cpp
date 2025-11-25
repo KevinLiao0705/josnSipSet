@@ -33,7 +33,7 @@ extern "C"
 #define sipphoneIo
 //#define sipui2in1Io
 //=============================
-//#define roip
+#define roip
 //=============================
 
 
@@ -625,7 +625,7 @@ void sockIoReced(MYSTM *mystm)
 void uart0Reced(MYSTM *mystm)
 {
 	int i;
-	// printf("uart0 received, len:%d\n", mystm->rdata_len);
+	//printf("uart0 received, len:%d\n", mystm->rdata_len);
 	if (mystm->rdata_len < 4000)
 	{
 		for (i = 0; i < mystm->rdata_len; i++)
@@ -638,7 +638,7 @@ void uart0Reced(MYSTM *mystm)
 void uart1Reced(MYSTM *mystm)
 {
 	int i;
-	// printf("uart1 received, len:%d\n", mystm->rdata_len);
+	//printf("uart1 received, len:%d\n", mystm->rdata_len);
 	if (mystm->rdata_len < 4000)
 	{
 		for (i = 0; i < mystm->rdata_len; i++)

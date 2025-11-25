@@ -25,7 +25,7 @@ public class GB {
 
     //0: win.ui, 1: win.sip, 2: pi.ui, 3: pi.sip  
     static int prgMode = 3;
-    static String twinkleDeviceIp = "192.168.222.122";//just win use     
+    static String twinkleDeviceIp = "192.168.191.161";//just win use     
     static String version="s3.4";
 
     

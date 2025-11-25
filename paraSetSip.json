@@ -30,7 +30,7 @@
         ],
         "getType": "buttonRadio"
     },
-    "systemIpAddress": "192.168.2.4",
+    "systemIpAddress": "192.168.190.162",
     "dsc~systemIpAddress": {
         "title": "IP 位址",
         "getType": "ipStr"
